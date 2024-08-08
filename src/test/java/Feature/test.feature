@@ -39,6 +39,7 @@ Feature: Verify Brikroy icon work properly
 	
 #T4
 @Release
- Scenario: Verify Bikroy logo work properly true
+ Scenario: Verify Bikroy logo work properly false
    Given User Click on Bikroy logo
-#   Then User return to home page	
+    When Click on Dhaka city
+   Then Check that all mobiles in Mirpur area are displayed
