@@ -1,32 +1,42 @@
-# Use the Maven image with OpenJDK 11 as a base
+# Use an official Maven image as a parent image
 FROM maven:3.8.4-openjdk-11
 
-# Install necessary packages
-RUN apt-get update && \
-    apt-get install -y firefox-esr wget bzip2 xvfb libdbus-glib-1-2 && \
-    rm -rf /var/lib/apt/lists/*
+# Set the working directory
+WORKDIR /usr/src/app
 
-# Install GeckoDriver
-RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz && \
-    tar -xzf geckodriver-v0.33.0-linux64.tar.gz -C /usr/local/bin && \
-    rm geckodriver-v0.33.0-linux64.tar.gz
+# Install necessary packages
+RUN apt-get update \
+    && apt-get install -y \
+        firefox-esr \
+        wget \
+        bzip2 \
+        xvfb \
+        libdbus-glib-1-2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install GeckoDriver v0.33.0
+RUN wget -q https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz \
+    && tar -xzf geckodriver-v0.33.0-linux64.tar.gz -C /usr/local/bin/ \
+    && rm geckodriver-v0.33.0-linux64.tar.gz \
+    && chmod +x /usr/local/bin/geckodriver
 
 # Copy the pom.xml file and download dependencies
-COPY pom.xml /app/
-WORKDIR /app
+COPY pom.xml .
+
+# Download dependencies
 RUN mvn dependency:resolve
 
-# Copy the rest of the application code
-COPY . /app
+# Copy the rest of the application
+COPY . .
 
-# Clean the target directory and prepare the run-tests script
-RUN mvn clean
+# Ensure the target directory is cleaned before running tests
+RUN rm -rf target
 
-# Copy the script to run tests
-COPY run-tests.sh /app/
+# Copy the test runner script into the container
+COPY run-tests.sh /usr/src/app/
 
 # Make the script executable
-RUN chmod +x /app/run-tests.sh
+RUN chmod +x /usr/src/app/run-tests.sh
 
-# Set the entry point to the test script
-ENTRYPOINT ["/app/run-tests.sh"]
+# Use the script as the entry point
+CMD ["/usr/src/app/run-tests.sh"]
