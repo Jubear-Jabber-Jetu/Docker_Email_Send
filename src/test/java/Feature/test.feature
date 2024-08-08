@@ -1,7 +1,7 @@
 Feature: Verify Brikroy icon work properly
 
-  #T1
-  @Release
+#T1
+@Release
   Scenario: Verify Bikroy logo work properly
     Given User Click on Bikroy logo
 #    Then User return to home page
@@ -23,9 +23,9 @@ Feature: Verify Brikroy icon work properly
     When Click on a mobile top in the list
 
 
-    #T3
+#T3
 @Release
-  Scenario: Product Display
+  Scenario: Product Display false
     Given Check Mobiles button is available in Category item section
     And Check Select Location button is available
     When Click Select Location button
@@ -36,3 +36,9 @@ Feature: Verify Brikroy icon work properly
     When Click Mirpur area
     Then Check that all mobiles in Mirpur area are displayed
     When Click on a mobile top in the list
+	
+#T4
+@Release
+ Scenario: Verify Bikroy logo work properly true
+   Given User Click on Bikroy logo
+#   Then User return to home page	
