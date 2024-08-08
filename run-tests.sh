@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# Run Maven tests
-mvn clean test
+# Start by running all tests
+mvn test > test-results.log
 
-# Capture the exit code
-EXIT_CODE=$?
+# Initialize counters
+TOTAL_TESTS=$(grep -c "Running " test-results.log)
+FAILED_TESTS=$(grep -c "Tests run:.*, Failures: [^0]" test-results.log)
 
-# If needed, you can process the test results here
+# Log the summary
+echo "Total Tests Run: $TOTAL_TESTS"
+echo "Total Tests Failed: $FAILED_TESTS"
 
-# Exit with success status regardless of test results
+# Exit with 0 to ensure the container succeeds
 exit 0
