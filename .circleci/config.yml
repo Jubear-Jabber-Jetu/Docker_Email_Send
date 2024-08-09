@@ -1,10 +1,9 @@
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
 jobs:
   build-and-test:
     docker:
-      - image: cimg/maven:3.8.4
+      - image: circleci/maven:3.8.4
 
     steps:
       - checkout
@@ -13,7 +12,6 @@ jobs:
           command: |
             mvn clean install
 
-# Orchestrate jobs using workflows
 workflows:
   build-and-test-workflow:
     jobs:
