@@ -17,8 +17,9 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
-            # Ensure the Dockerfile is in the right location
-            ls -la
+            # Navigate to the directory containing the Dockerfile
+            cd circleci-project-setup
+            # Build the Docker image
             docker build -t web_test_automation .
 
 workflows:
