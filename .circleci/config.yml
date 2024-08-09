@@ -3,21 +3,12 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:11-jdk
+      - image: your-docker-image:latest  # Replace with your Docker image tag
     steps:
       - checkout
       - run:
-          name: Cache Maven dependencies
-          command: |
-            mkdir -p ~/.m2
-            cp -r $CIRCLE_WORKING_DIRECTORY/.m2 ~/.m2
-      - run:
           name: Build with Maven
           command: mvn clean install
-      - run:
-          name: Save Maven dependencies cache
-          command: |
-            cp -r ~/.m2 $CIRCLE_WORKING_DIRECTORY/.m2
 workflows:
   version: 2
   build:
