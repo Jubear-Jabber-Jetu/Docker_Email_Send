@@ -1,16 +1,34 @@
-version: 2.1
+pipeline {
+    agent any
 
-jobs:
-  build:
-    docker:
-      - image: your-docker-image:latest  # Replace with your Docker image tag
-    steps:
-      - checkout
-      - run:
-          name: Build with Maven
-          command: mvn clean install
-workflows:
-  version: 2
-  build:
-    jobs:
-      - build
+    environment {
+        DOCKER_IMAGE = "web_test_automation"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out the repository...'
+                checkout([$class: 'GitSCM',
+                          branches: [[name: 'main']],
+                          userRemoteConfigs: [[url: 'https://github.com/Jubear-Jabber-Jetu/Docker_Email_Send.git',
+                                               credentialsId: 'github']]])
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building the Docker image...'
+                script {
+                    try {
+                        powershell '''
+                            docker build -t $Env:DOCKER_IMAGE .
+                        '''
+                    } catch (Exception e) {
+                        echo "Error building Docker image: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error "Stopping pipeline execution due to Docker build failure"
+                    }
+                }
+            }
+        }
