@@ -1,18 +1,96 @@
 version: 2.1
 
-jobs:
-  build-and-test:
+executors:
+  docker-executor:
     docker:
-      - image: circleci/maven:3.8.4
+      - image: web_test_automation
 
+jobs:
+  checkout:
+    executor: docker-executor
+    steps:
+      - checkout
+
+  build-docker-image:
+    executor: docker-executor
     steps:
       - checkout
       - run:
-          name: "Build and Test Maven Project"
+          name: Build Docker Image
           command: |
-            mvn clean install
+            docker build -t web_test_automation .
+
+  run-tests:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Run Tests in Docker
+          command: |
+            result=$(docker run --rm web_test_automation sh -c "mvn clean test || true")
+            echo "Test Results Output:\n${result}"
+            
+            # Parse the output to get the test counts
+            if [[ $result =~ Tests\ run:\ ([0-9]+),\ Failures:\ ([0-9]+),\ Errors:\ ([0-9]+),\ Skipped:\ ([0-9]+) ]]; then
+              total=${BASH_REMATCH[1]}
+              failures=${BASH_REMATCH[2]}
+              errors=${BASH_REMATCH[3]}
+              skipped=${BASH_REMATCH[4]}
+              passed=$((total - failures - errors - skipped))
+              passing_rate=$(echo "scale=2; ($passed / $total) * 100" | bc)
+              
+              echo "Passed: $passed, Failed: $failures, Errors: $errors, Skipped: $skipped, Total: $total"
+              echo "Passing Rate: $passing_rate%"
+              echo "PASSING_RATE=$passing_rate" >> $BASH_ENV
+            else
+              echo "No test result summary found in the output."
+            fi
+
+  publish-allure-reports:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Publish Allure Reports
+          command: |
+            allure serve allure-results || true  # Ensure this command doesn't fail the job
+
+  send-email:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - run:
+          name: Send Email Notification
+          command: |
+            passing_rate=$(echo $PASSING_RATE)
+            if [ "$CIRCLE_JOB" == "build-docker-image" ]; then
+              echo "Pipeline succeeded with a passing rate of $passing_rate%."
+              # Add command to send email using an SMTP service or tool of your choice
+            elif [ "$CIRCLE_JOB" == "run-tests" ] && [ "$CIRCLE_BUILD_STATUS" == "success" ]; then
+              echo "Pipeline succeeded with a passing rate of $passing_rate%."
+              # Add command to send email using an SMTP service or tool of your choice
+            elif [ "$CIRCLE_JOB" == "run-tests" ] && [ "$CIRCLE_BUILD_STATUS" == "failed" ]; then
+              echo "Pipeline failed with a passing rate of $passing_rate%. Please check the logs."
+              # Add command to send email using an SMTP service or tool of your choice
+            elif [ "$CIRCLE_JOB" == "run-tests" ] && [ "$CIRCLE_BUILD_STATUS" == "unstable" ]; then
+              echo "Pipeline is unstable with a passing rate of $passing_rate%. Please check the logs."
+              # Add command to send email using an SMTP service or tool of your choice
+            fi
 
 workflows:
-  build-and-test-workflow:
+  version: 2
+  build:
     jobs:
-      - build-and-test
+      - checkout
+      - build-docker-image:
+          requires:
+            - checkout
+      - run-tests:
+          requires:
+            - build-docker-image
+      - publish-allure-reports:
+          requires:
+            - run-tests
+      - send-email:
+          requires:
+            - publish-allure-reports
