@@ -17,6 +17,8 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
+            # Ensure the Dockerfile is in the right location
+            ls -la
             docker build -t web_test_automation .
 
 workflows:
