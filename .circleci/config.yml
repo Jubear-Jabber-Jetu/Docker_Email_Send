@@ -3,7 +3,7 @@ version: 2.1
 executors:
   docker-executor:
     docker:
-      - image: circleci/openjdk:11-jdk
+      - image: your-custom-image-with-allure:latest
 
 jobs:
   checkout:
@@ -44,7 +44,10 @@ jobs:
           name: Install Allure Commandline
           command: |
             sudo apt-get update
-            sudo apt-get install -y allure
+            sudo apt-get install -y unzip
+            curl -o allure-commandline.zip -L "https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip"
+            unzip allure-commandline.zip -d /opt
+            ln -s /opt/allure-commandline-2.14.0/bin/allure /usr/local/bin/allure
       - run:
           name: Generate Allure Report
           command: |
