@@ -35,7 +35,7 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm web_test_automation sh -c mvn clean test || true"
+            docker run --rm web_test_automation sh -c "mvn clean test || true"
 
 workflows:
   version: 2
