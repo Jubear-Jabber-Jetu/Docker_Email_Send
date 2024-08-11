@@ -1,42 +1,43 @@
 version: 2.1
 
 executors:
-  docker-executor:
+  windows-executor:
     docker:
-      - image: smartcosmos/allure-commandline:latest
+      - image: mcr.microsoft.com/windows/servercore:ltsc2019  # or any suitable Windows image
 
 jobs:
   checkout:
-    executor: docker-executor
+    executor: windows-executor
     steps:
       - checkout
+      - run:
+          name: Checkout the repository
+          command: echo "Checking out the repository..."
 
   build_docker_image:
-    executor: docker-executor
+    executor: windows-executor
     steps:
-      - setup_remote_docker:
-          version: 20.10.7
-          docker_layer_caching: true
-      - checkout
       - run:
           name: Build Docker Image
           command: docker build -t web_test_automation .
 
   run_tests_in_docker:
-    executor: docker-executor
+    executor: windows-executor
     steps:
-      - setup_remote_docker:
-          version: 20.10.7
-          docker_layer_caching: true
-      - checkout
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/allure-results:/app/allure-results web_test_automation sh -c "mvn clean test || true"
+            docker run --rm -v %CD%\allure-results:/app/allure-results web_test_automation sh -c "mvn clean test || true"
 
   generate_allure_report:
-    executor: docker-executor
+    executor: windows-executor
     steps:
+      - run:
+          name: Install Allure Commandline
+          command: |
+            powershell -Command "Invoke-WebRequest -Uri 'https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip' -OutFile 'allure-commandline.zip'"
+            powershell -Command "Expand-Archive -Path 'allure-commandline.zip' -DestinationPath 'C:\Program Files\Allure'"
+            powershell -Command "set-location 'C:\Program Files\Allure\allure-commandline-2.14.0\bin'; [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + (Get-Location).Path, [System.EnvironmentVariableTarget]::Machine)"
       - run:
           name: Generate Allure Report
           command: |
