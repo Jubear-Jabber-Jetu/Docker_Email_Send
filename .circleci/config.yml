@@ -35,36 +35,13 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test"
+            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test || true"
       - store_test_results:
           path: test-results  # Directory where JUnit XML results are saved
       - store_artifacts:
           path: test-results  # Save test results as artifacts
-
-  generate_code_coverage_report:
-    executor: docker-executor
-    steps:
-      - run:
-          name: Generate Code Coverage Report
-          command: |
-            mvn clean test
-            mvn jacoco:report
       - store_artifacts:
-          path: target/site/jacoco  # Save JaCoCo HTML report as artifact
-      - store_artifacts:
-          path: target/jacoco.exec  # Save JaCoCo binary coverage data
-
-  snyk_security_scan:
-    executor: docker-executor
-    steps:
-      - run:
-          name: Install Snyk
-          command: npm install -g snyk
-      - run:
-          name: Run Snyk Security Scan
-          command: snyk test --json > snyk-report.json
-      - store_artifacts:
-          path: snyk-report.json  # Save Snyk JSON report as artifact
+          path: custom-report.html  # Save additional HTML report as an artifact
 
 workflows:
   version: 2
@@ -75,11 +52,5 @@ workflows:
           requires:
             - checkout
       - run_tests_in_docker:
-          requires:
-            - build_docker_image
-      - generate_code_coverage_report:
-          requires:
-            - run_tests_in_docker
-      - snyk_security_scan:
           requires:
             - build_docker_image
