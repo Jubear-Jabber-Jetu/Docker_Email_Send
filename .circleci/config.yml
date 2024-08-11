@@ -17,8 +17,19 @@ jobs:
           name: Checking out the repository
           command: echo 'Checking out the repository...'
 
+  build_docker_image:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Build Docker Image
+          command: docker build -t web_test_automation .
+
 workflows:
   version: 2
   build_and_test:
     jobs:
       - checkout
+      - build_docker_image:
+          requires:
+            - checkout
