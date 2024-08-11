@@ -6,13 +6,22 @@ executors:
       - image: circleci/openjdk:11-jdk
 
 jobs:
+  setup_xvfb:
+    executor: docker-executor
+    steps:
+      - run:
+          name: Install Xvfb
+          command: |
+            apt-get update && apt-get install -y xvfb
+      - run:
+          name: Start Xvfb
+          command: |
+            Xvfb :99 -screen 0 1280x1024x24 &
+
   checkout:
     executor: docker-executor
     steps:
       - checkout
-      - run:
-          name: Checking out the repository
-          command: echo 'Checking out the repository...'
 
   build_docker_image:
     executor: docker-executor
@@ -35,33 +44,16 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            RESULT=$(docker run --rm web_test_automation sh -c "mvn clean test")
-            echo "Test Results Output:\n$RESULT"
-
-            # Extract test summary from the output
-            TESTS=$(echo "$RESULT" | grep -oP 'Tests run: \K\d+')
-            FAILURES=$(echo "$RESULT" | grep -oP 'Failures: \K\d+')
-            ERRORS=$(echo "$RESULT" | grep -oP 'Errors: \K\d+')
-            SKIPPED=$(echo "$RESULT" | grep -oP 'Skipped: \K\d+')
-
-            if [ -n "$TESTS" ]; then
-              PASSED=$((TESTS - FAILURES - ERRORS - SKIPPED))
-              PASSING_RATE=$(echo "scale=2; $PASSED/$TESTS*100" | bc -l)
-              echo "Passed: $PASSED, Failed: $FAILURES, Errors: $ERRORS, Skipped: $SKIPPED, Total: $TESTS"
-              echo "Passing Rate: $PASSING_RATE%"
-
-              # Export passing rate for use in later jobs
-              echo "export PASSING_RATE=$PASSING_RATE" >> $BASH_ENV
-            else
-              echo "No test result summary found in the output."
-              exit 1
-            fi
+            DISPLAY=:99 docker run --rm web_test_automation sh -c "mvn clean test"
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - checkout
+      - setup_xvfb
+      - checkout:
+          requires:
+            - setup_xvfb
       - build_docker_image:
           requires:
             - checkout
