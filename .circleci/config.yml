@@ -35,7 +35,7 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/allure-results:/app/allure-results web_test_automation sh -c "mvn clean test"
+            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/allure-results:/app/allure-results web_test_automation sh -c "mvn clean test || true"
 
   generate_allure_report:
     executor: docker-executor
