@@ -35,7 +35,27 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm web_test_automation sh -c "mvn clean test || true"
+            RESULT=$(docker run --rm web_test_automation sh -c "mvn clean test")
+            echo "Test Results Output:\n$RESULT"
+
+            # Extract test summary from the output
+            TESTS=$(echo "$RESULT" | grep -oP 'Tests run: \K\d+')
+            FAILURES=$(echo "$RESULT" | grep -oP 'Failures: \K\d+')
+            ERRORS=$(echo "$RESULT" | grep -oP 'Errors: \K\d+')
+            SKIPPED=$(echo "$RESULT" | grep -oP 'Skipped: \K\d+')
+
+            if [ -n "$TESTS" ]; then
+              PASSED=$((TESTS - FAILURES - ERRORS - SKIPPED))
+              PASSING_RATE=$(echo "scale=2; $PASSED/$TESTS*100" | bc -l)
+              echo "Passed: $PASSED, Failed: $FAILURES, Errors: $ERRORS, Skipped: $SKIPPED, Total: $TESTS"
+              echo "Passing Rate: $PASSING_RATE%"
+
+              # Export passing rate for use in later jobs
+              echo "export PASSING_RATE=$PASSING_RATE" >> $BASH_ENV
+            else
+              echo "No test result summary found in the output."
+              exit 1
+            fi
 
 workflows:
   version: 2
