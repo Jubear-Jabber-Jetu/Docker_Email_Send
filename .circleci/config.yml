@@ -26,7 +26,7 @@ jobs:
           command: |
             echo "Building the Docker image..."
             docker build -t web_test_automation .
-      
+
   run_tests_in_docker:
     executor: docker-executor
     steps:
@@ -55,18 +55,23 @@ jobs:
               passingRate=0
             fi
 
-            echo "Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}"
-            echo "Passing Rate: ${passingRate}%"
+            # Format the output for readability
+            echo "==================== Test Summary ===================="
+            echo "Total Tests Run : ${total}"
+            echo "Passed          : ${passed}"
+            echo "Failed          : ${failures}"
+            echo "Errors          : ${errors}"
+            echo "Skipped         : ${skipped}"
+            echo "Passing Rate    : ${passingRate}%"
+            echo "======================================================="
 
-            # Save the detailed results and passing rate to a file
-            {
-              echo "Total: ${total}"
-              echo "Passed: ${passed}"
-              echo "Failed: ${failures}"
-              echo "Errors: ${errors}"
-              echo "Skipped: ${skipped}"
-              echo "Passing Rate: ${passingRate}%"
-            } > passing_rate.txt
+            # Save the summary to a file
+            echo "Total: ${total}" > passing_rate.txt
+            echo "Passed: ${passed}" >> passing_rate.txt
+            echo "Failed: ${failures}" >> passing_rate.txt
+            echo "Errors: ${errors}" >> passing_rate.txt
+            echo "Skipped: ${skipped}" >> passing_rate.txt
+            echo "Passing Rate: ${passingRate}%" >> passing_rate.txt
 
             # Set the build result based on the pass and fail counts
             if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
@@ -77,7 +82,7 @@ jobs:
       - store_artifacts:
           path: test-results  # Save test results as artifacts
       - store_artifacts:
-          path: passing_rate.txt  # Save passing rate and other details as an artifact
+          path: passing_rate.txt  # Save passing rate as an artifact
       - store_artifacts:
           path: result_status.txt  # Save build result status as an artifact
 
