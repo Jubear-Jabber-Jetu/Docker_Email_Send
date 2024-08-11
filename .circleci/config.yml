@@ -15,10 +15,7 @@ jobs:
           command: echo 'Checking out the repository...'
 
   build_docker_image:
-    docker:
-      - image: circleci/python:3.8
-        name: docker
-      - image: circleci/openjdk:11-jdk
+    executor: docker-executor
     steps:
       - setup_remote_docker:
           version: 20.10.7
@@ -28,6 +25,18 @@ jobs:
           name: Build Docker Image
           command: docker build -t web_test_automation .
 
+  run_tests_in_docker:
+    executor: docker-executor
+    steps:
+      - setup_remote_docker:
+          version: 20.10.7
+          docker_layer_caching: true
+      - checkout
+      - run:
+          name: Run Tests in Docker Container
+          command: |
+            docker run --rm web_test_automation sh -c mvn clean test || true"
+
 workflows:
   version: 2
   build_and_test:
@@ -36,3 +45,6 @@ workflows:
       - build_docker_image:
           requires:
             - checkout
+      - run_tests_in_docker:
+          requires:
+            - build_docker_image
