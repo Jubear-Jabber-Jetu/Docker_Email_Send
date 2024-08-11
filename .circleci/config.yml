@@ -52,11 +52,7 @@ jobs:
             passed=$((total - failures - errors - skipped))
 
             # Calculate the passing rate
-            if [ "$total" -gt 0 ]; then
-              passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
-            else
-              passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
-            fi
+            passingRate=$((passed * 100 / total))
 
             # Format the output for readability
             echo "==================== Test Summary ===================="
@@ -67,6 +63,10 @@ jobs:
             echo "Skipped         : ${skipped}"
             echo "Passing Rate    : ${passingRate}%"
             echo "======================================================="
+
+            # Store the passing rate as an environment variable for later use
+            echo "export PASSING_RATE=${passingRate}" >> $BASH_ENV
+            source $BASH_ENV
 
             # Save the summary to a file
             echo "Total: ${total}" > passing_rate.txt
