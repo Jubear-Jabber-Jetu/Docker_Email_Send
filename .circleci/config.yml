@@ -35,27 +35,16 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test || true"
-      - store_test_results:
-          path: test-results  # Directory where JUnit XML results are saved
-      - store_artifacts:
-          path: test-results  # Save test results as artifacts
-
-  run_newman_tests:
-    executor: docker-executor
-    steps:
+            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test"
       - run:
-          name: Install Newman
+          name: Generate Custom Report
           command: |
-            npm install -g newman
-      - run:
-          name: Run Newman Tests
-          command: |
-            newman run /path/to/your/collection.json -r html,json --reporter-html-export newman-report.html --reporter-json-export newman-report.json
+            # Custom reporting script
+            python generate_report.py  # Example script to generate a custom report
       - store_artifacts:
-          path: newman-report.html  # Save Newman HTML report as artifact
+          path: custom-report.html  # Save custom HTML report as artifact
       - store_artifacts:
-          path: newman-report.json  # Save Newman JSON report as artifact
+          path: custom-report.json  # Save custom JSON report as artifact
 
 workflows:
   version: 2
@@ -66,8 +55,5 @@ workflows:
           requires:
             - checkout
       - run_tests_in_docker:
-          requires:
-            - build_docker_image
-      - run_newman_tests:
           requires:
             - build_docker_image
