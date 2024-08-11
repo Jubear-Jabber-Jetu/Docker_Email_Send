@@ -12,11 +12,28 @@ jobs:
       - checkout
       - run:
           name: Checking out the repository
-          command: |
-            echo 'Checking out the repository...'
+          command: echo 'Checking out the repository...'
+
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Building the project with Maven
+          command: mvn clean install
+
+  test:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Running tests with Maven
+          command: mvn test
 
 workflows:
   version: 2
   build_and_test:
     jobs:
       - checkout
+      - build
+      - test
