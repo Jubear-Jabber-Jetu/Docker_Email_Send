@@ -35,24 +35,9 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/allure-results:/app/allure-results web_test_automation sh -c "mvn clean test || true"
+            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test"
       - store_test_results:
-          path: allure-results  # Update this path if your results are in a different directory
-
-  generate_report_summary:
-    executor: docker-executor
-    steps:
-      - run:
-          name: Install JUnit Report Aggregator (Optional)
-          command: |
-            # If you need specific tools for report aggregation, install them here
-            echo "JUnit report aggregation is handled by CircleCI natively."
-      - run:
-          name: Generate Report Summary
-          command: |
-            echo "CircleCI handles test result summarization natively."
-      - store_artifacts:
-          path: allure-results  # Optional: Store raw test result files if needed
+          path: test-results  # Directory where JUnit XML results are saved
 
 workflows:
   version: 2
@@ -65,6 +50,3 @@ workflows:
       - run_tests_in_docker:
           requires:
             - build_docker_image
-      - generate_report_summary:
-          requires:
-            - run_tests_in_docker
