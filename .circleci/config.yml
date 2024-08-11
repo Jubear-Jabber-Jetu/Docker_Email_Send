@@ -36,7 +36,7 @@ jobs:
       - checkout
       - run:
           name: Install necessary utilities
-          command: sudo apt-get update && sudo apt-get install -y bc
+          command: sudo apt-get update && sudo apt-get install -y bc mailutils
       - run:
           name: Run Tests in Docker Container
           command: |
@@ -62,6 +62,12 @@ jobs:
               # Store the passing rate as an environment variable for later use
               echo "export PASSING_RATE=${passingRate}" >> $BASH_ENV
               source $BASH_ENV
+
+              # Check if passing rate is below 70%
+              if [ "$passingRate" -lt 70 ]; then
+                echo "Passing rate is below 70%. Sending failure email..."
+                echo "Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%" | mail -s "Build Failed: Passing Rate Below 70%" jubearjabberjetu@gmail.com
+              fi
 
               # Set the build result based on the pass and fail counts
               if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
