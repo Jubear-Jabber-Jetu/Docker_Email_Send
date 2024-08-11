@@ -35,9 +35,11 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test || true"
+            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/test-results:/app/test-results web_test_automation sh -c "mvn clean test"
       - store_test_results:
           path: test-results  # Directory where JUnit XML results are saved
+      - store_artifacts:
+          path: test-results  # Save test results as artifacts
 
 workflows:
   version: 2
