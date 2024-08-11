@@ -42,9 +42,10 @@ jobs:
     steps:
       - run:
           name: Install Allure Commandline
-        command: |
-            sudo apt-get update
-            sudo apt-get install -y allure
+          command: |
+            curl -sL "https://github.com/allure-framework/allure2/releases/latest/download/allure-commandline.zip" -o allure-commandline.zip
+            unzip allure-commandline.zip -d /usr/local/allure
+            export PATH=$PATH:/usr/local/allure/allure-2.15.0/bin
       - run:
           name: Generate Allure Report
           command: |
