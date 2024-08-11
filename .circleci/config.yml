@@ -37,16 +37,14 @@ jobs:
           command: |
             docker run --rm -v $CIRCLE_WORKING_DIRECTORY/allure-results:/app/allure-results web_test_automation sh -c "mvn clean test || true"
 
-  generate_allure_report:
+    generate_allure_report:
     executor: docker-executor
     steps:
       - run:
           name: Install Allure Commandline
           command: |
-            curl -o allure-commandline.tgz -L "https://github.com/allure-framework/allure2/releases/download/2.13.12/allure-2.13.12.tgz"
-            tar -zxvf allure-commandline.tgz
-            mv allure-2.13.12 /usr/local/allure
-            export PATH=$PATH:/usr/local/allure/bin
+            sudo apt-get update
+            sudo apt-get install -y allure
       - run:
           name: Generate Allure Report
           command: |
