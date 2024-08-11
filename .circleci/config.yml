@@ -35,6 +35,9 @@ jobs:
           docker_layer_caching: true
       - checkout
       - run:
+          name: Install bc Utility
+          command: sudo apt-get update && sudo apt-get install -y bc
+      - run:
           name: Run Tests in Docker Container
           command: |
             echo "Running tests inside Docker container..."
@@ -42,16 +45,18 @@ jobs:
             echo "Test Results Output:\n${result}"
 
             # Parse the output to get the test counts
-            total=$(echo "${result}" | grep -oP 'Tests run: \K\d+')
-            failures=$(echo "${result}" | grep -oP 'Failures: \K\d+')
-            errors=$(echo "${result}" | grep -oP 'Errors: \K\d+')
-            skipped=$(echo "${result}" | grep -oP 'Skipped: \K\d+')
+            total=$(echo "${result}" | grep -oP 'Tests run: \K\d+' || echo "0")
+            failures=$(echo "${result}" | grep -oP 'Failures: \K\d+' || echo "0")
+            errors=$(echo "${result}" | grep -oP 'Errors: \K\d+' || echo "0")
+            skipped=$(echo "${result}" | grep -oP 'Skipped: \K\d+' || echo "0")
             passed=$((total - failures - errors - skipped))
 
             # Calculate the passing rate
-
-            passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
-            
+            if [ "$total" -gt 0 ]; then
+              passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
+            else
+              passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
+            fi
 
             # Format the output for readability
             echo "==================== Test Summary ===================="
