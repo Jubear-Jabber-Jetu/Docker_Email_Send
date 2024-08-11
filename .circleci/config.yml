@@ -41,6 +41,22 @@ jobs:
       - store_artifacts:
           path: test-results  # Save test results as artifacts
 
+  run_newman_tests:
+    executor: docker-executor
+    steps:
+      - run:
+          name: Install Newman
+          command: |
+            npm install -g newman
+      - run:
+          name: Run Newman Tests
+          command: |
+            newman run /path/to/your/collection.json -r html,json --reporter-html-export newman-report.html --reporter-json-export newman-report.json
+      - store_artifacts:
+          path: newman-report.html  # Save Newman HTML report as artifact
+      - store_artifacts:
+          path: newman-report.json  # Save Newman JSON report as artifact
+
 workflows:
   version: 2
   build_and_test:
@@ -50,5 +66,8 @@ workflows:
           requires:
             - checkout
       - run_tests_in_docker:
+          requires:
+            - build_docker_image
+      - run_newman_tests:
           requires:
             - build_docker_image
