@@ -49,7 +49,11 @@ jobs:
             passed=$((total - failures - errors - skipped))
 
             # Calculate the passing rate
-            passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
+            if [ "$total" -gt 0 ]; then
+              passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
+            else
+              passingRate=0
+            fi
 
             echo "Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}"
             echo "Passing Rate: ${passingRate}%"
@@ -58,7 +62,7 @@ jobs:
             echo "${passingRate}" > passing_rate.txt
 
             # Set the build result based on the pass and fail counts
-            if [ $failures -gt 0 ] || [ $errors -gt 0 ]; then
+            if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
               echo "UNSTABLE" > result_status.txt
             else
               echo "SUCCESS" > result_status.txt
