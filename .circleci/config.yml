@@ -49,11 +49,9 @@ jobs:
             passed=$((total - failures - errors - skipped))
 
             # Calculate the passing rate
-            if [ "$total" -gt 0 ]; then
-              passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
-            else
-              passingRate=0
-            fi
+
+            passingRate=$(echo "scale=2; ($passed / $total) * 100" | bc -l)
+            
 
             # Format the output for readability
             echo "==================== Test Summary ===================="
