@@ -6,22 +6,13 @@ executors:
       - image: circleci/openjdk:11-jdk
 
 jobs:
-  setup_xvfb:
-    executor: docker-executor
-    steps:
-      - run:
-          name: Install Xvfb
-          command: |
-            apt-get update && apt-get install -y xvfb
-      - run:
-          name: Start Xvfb
-          command: |
-            Xvfb :99 -screen 0 1280x1024x24 &
-
   checkout:
     executor: docker-executor
     steps:
       - checkout
+      - run:
+          name: Checking out the repository
+          command: echo 'Checking out the repository...'
 
   build_docker_image:
     executor: docker-executor
@@ -44,19 +35,39 @@ jobs:
       - run:
           name: Run Tests in Docker Container
           command: |
-            DISPLAY=:99 docker run --rm web_test_automation sh -c "mvn clean test"
+            docker run --rm -v $CIRCLE_WORKING_DIRECTORY/allure-results:/app/allure-results web_test_automation sh -c "mvn clean test"
+
+  generate_allure_report:
+    executor: docker-executor
+    steps:
+      - run:
+          name: Install Allure Commandline
+          command: |
+            curl -o allure-commandline.tgz -L "https://github.com/allure-framework/allure2/releases/download/2.13.12/allure-2.13.12.tgz"
+            tar -zxvf allure-commandline.tgz
+            mv allure-2.13.12 /usr/local/allure
+            export PATH=$PATH:/usr/local/allure/bin
+      - run:
+          name: Generate Allure Report
+          command: |
+            allure generate $CIRCLE_WORKING_DIRECTORY/allure-results --clean -o $CIRCLE_WORKING_DIRECTORY/allure-report
+      - store_artifacts:
+          path: allure-report
+          destination: allure-report
+      - store_test_results:
+          path: allure-results
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - setup_xvfb
-      - checkout:
-          requires:
-            - setup_xvfb
+      - checkout
       - build_docker_image:
           requires:
             - checkout
       - run_tests_in_docker:
           requires:
             - build_docker_image
+      - generate_allure_report:
+          requires:
+            - run_tests_in_docker
