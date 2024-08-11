@@ -41,6 +41,31 @@ jobs:
       - store_artifacts:
           path: test-results  # Save test results as artifacts
 
+  generate_code_coverage_report:
+    executor: docker-executor
+    steps:
+      - run:
+          name: Generate Code Coverage Report
+          command: |
+            mvn clean test
+            mvn jacoco:report
+      - store_artifacts:
+          path: target/site/jacoco  # Save JaCoCo HTML report as artifact
+      - store_artifacts:
+          path: target/jacoco.exec  # Save JaCoCo binary coverage data
+
+  snyk_security_scan:
+    executor: docker-executor
+    steps:
+      - run:
+          name: Install Snyk
+          command: npm install -g snyk
+      - run:
+          name: Run Snyk Security Scan
+          command: snyk test --json > snyk-report.json
+      - store_artifacts:
+          path: snyk-report.json  # Save Snyk JSON report as artifact
+
 workflows:
   version: 2
   build_and_test:
@@ -50,5 +75,11 @@ workflows:
           requires:
             - checkout
       - run_tests_in_docker:
+          requires:
+            - build_docker_image
+      - generate_code_coverage_report:
+          requires:
+            - run_tests_in_docker
+      - snyk_security_scan:
           requires:
             - build_docker_image
