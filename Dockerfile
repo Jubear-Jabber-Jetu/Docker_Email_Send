@@ -4,7 +4,7 @@ FROM maven:3.8.4-openjdk-11
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Install necessary packages
+# Install necessary packages, including mailutils for sending emails
 RUN apt-get update \
     && apt-get install -y \
         firefox-esr \
@@ -12,6 +12,7 @@ RUN apt-get update \
         bzip2 \
         xvfb \
         libdbus-glib-1-2 \
+        mailutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GeckoDriver v0.33.0
