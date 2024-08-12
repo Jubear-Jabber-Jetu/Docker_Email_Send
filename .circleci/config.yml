@@ -66,7 +66,6 @@ jobs:
               # Check if passing rate is below 70%
               if [ "$passingRate" -lt 70 ]; then
                 echo "Passing rate is below 70%. Sending failure email..."
-                echo "Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%" > passing_rate_summary.txt
                 
                 mailer-orb/mail:
                   body: |-
@@ -83,12 +82,6 @@ jobs:
                   from: jubearjabberjetu@gmail.com
                   subject: Build Failed: Passing Rate Below 70%
                   to: jubearjabberjetu@gmail.com
-                
-                if [ $? -eq 0 ]; then
-                  echo "Mail sent successfully."
-                else
-                  echo "Failed to send mail."
-                fi
               fi
 
               # Save the summary to a file
