@@ -1,4 +1,7 @@
-version: 2.1
+version: '2.1'
+
+orbs:
+  mailer-orb: sudiptog81/mailer-orb@dev:alpha
 
 executors:
   docker-executor:
@@ -63,7 +66,23 @@ jobs:
               # Check if passing rate is below 70%
               if [ "$passingRate" -lt 70 ]; then
                 echo "Passing rate is below 70%. Sending failure email..."
-                echo "Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%" | mail -s "Build Failed: Passing Rate Below 70%" jubearjabberjetu@gmail.com
+                echo "Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%" > passing_rate_summary.txt
+                
+                mailer-orb/mail:
+                  body: |-
+                    Test results:
+                    Passed: ${passed}
+                    Failed: ${failures}
+                    Errors: ${errors}
+                    Skipped: ${skipped}
+                    Total: ${total}
+                    Passing Rate: ${passingRate}%
+                    
+                    Regards,
+                    CircleCI
+                  from: jubearjabberjetu@gmail.com
+                  subject: Build Failed: Passing Rate Below 70%
+                  to: jubearjabberjetu@gmail.com
                 
                 if [ $? -eq 0 ]; then
                   echo "Mail sent successfully."
