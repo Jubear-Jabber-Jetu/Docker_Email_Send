@@ -124,4 +124,3 @@ workflows:
       - run_tests_in_docker:
           requires:
             - start_maildev
-``
