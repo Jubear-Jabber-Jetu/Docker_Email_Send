@@ -35,9 +35,6 @@ jobs:
           docker_layer_caching: true
       - checkout
       - run:
-          name: Install Mail Utilities
-          command: sudo apt-get update && sudo apt-get install -y mailutils
-      - run:
           name: Run Tests in Docker Container
           command: |
             echo "Running tests inside Docker container..."
@@ -69,7 +66,7 @@ jobs:
                 email_content="Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%"
                 
                 for email in jubearjabberjetu@gmail.com jubear.qups@gmail.com; do
-                  echo "$email_content" | mail -s "Build Failed: Passing Rate Below 70%" "$email" -- -S smtp=smtp://localhost:1025
+                  echo "$email_content" | mail -s "Build Failed: Passing Rate Below 70%" "$email"
                   if [ $? -eq 0 ]; then
                     echo "Mail sent successfully to $email."
                   else
