@@ -35,11 +35,6 @@ jobs:
           docker_layer_caching: true
       - checkout
       - run:
-          name: Install Mail and Dependencies
-          command: |
-            apt-get update
-            apt-get install -y mailutils
-      - run:
           name: Run Tests in Docker Container
           command: |
             echo "Running tests inside Docker container..."
@@ -68,8 +63,8 @@ jobs:
               # Check if passing rate is below 70%
               if [ "$passingRate" -lt 70 ]; then
                 echo "Passing rate is below 70%. Sending failure email..."
-                echo "Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%" | mail -s "Build Failed: Passing Rate Below 70%" jubearjabberjetu@gmail.com
-
+                echo "Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%" | mail -s "Build Failed: Passing Rate Below 70%" jubear.qups@gmail.com
+                
                 if [ $? -eq 0 ]; then
                   echo "Mail sent successfully."
                 else
@@ -111,4 +106,5 @@ workflows:
             - checkout
       - run_tests_in_docker:
           requires:
-            - build_docker_image
+            - build_docker_image 
+            
