@@ -65,9 +65,9 @@ jobs:
 
               # Check if passing rate is below 70%
               if [ "$passingRate" -lt 70 ]; then
-                echo "Passing rate is below 70%. Sending failure email..."
-                
-                mailer-orb/mail:
+                echo "Passing rate is below 70%. Triggering failure email..."
+                # Use the mailer-orb job to send the email
+                mailer-orb/send-email:
                   body: |-
                     Test results:
                     Passed: ${passed}
