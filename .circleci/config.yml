@@ -34,9 +34,7 @@ jobs:
       - run:
           name: Start MailDev
           command: |
-             docker pull maildev/maildev
-             docker run -p 1080:1080 -p 1025:1025 maildev/maildev
-
+            docker run -d -p 1080:1080 -p 1025:1025 --name maildev maildev/maildev:latest
 
   run_tests_in_docker:
     executor: docker-executor
@@ -126,3 +124,4 @@ workflows:
       - run_tests_in_docker:
           requires:
             - start_maildev
+``
