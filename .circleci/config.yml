@@ -81,4 +81,35 @@ jobs:
               # Save the summary to a file
               echo "Total: ${total}" > passing_rate.txt
               echo "Passed: ${passed}" >> passing_rate.txt
-              echo "Failed: ${failures}" >>
+              echo "Failed: ${failures}" >> passing_rate.txt
+              echo "Errors: ${errors}" >> passing_rate.txt
+              echo "Skipped: ${skipped}" >> passing_rate.txt
+              echo "Passing Rate: ${passingRate}%" >> passing_rate.txt
+
+              # Set the build result based on the pass and fail counts
+              if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
+                echo "UNSTABLE" > result_status.txt
+              else
+                echo "SUCCESS" > result_status.txt
+              fi
+            else
+              echo "No test result summary found in the output."
+            fi
+      - store_artifacts:
+          path: test-results  # Save test results as artifacts
+      - store_artifacts:
+          path: passing_rate.txt  # Save passing rate as an artifact
+      - store_artifacts:
+          path: result_status.txt  # Save build result status as an artifact
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - checkout
+      - build_docker_image:
+          requires:
+            - checkout
+      - run_tests_in_docker:
+          requires:
+            - build_docker_image
