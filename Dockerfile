@@ -4,7 +4,7 @@ FROM maven:3.8.4-openjdk-11
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Install necessary packages, including mailutils for sending emails
+# Install necessary packages, including ssmtp for sending emails
 RUN apt-get update \
     && apt-get install -y \
         firefox-esr \
@@ -12,8 +12,11 @@ RUN apt-get update \
         bzip2 \
         xvfb \
         libdbus-glib-1-2 \
-        mailutils \
+        ssmtp \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure ssmtp to use MailDev
+RUN echo "mailhub=localhost:1025\nFromLineOverride=YES" > /etc/ssmtp/ssmtp.conf
 
 # Install GeckoDriver v0.33.0
 RUN wget -q https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz \
