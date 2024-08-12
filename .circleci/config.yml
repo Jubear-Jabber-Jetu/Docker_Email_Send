@@ -1,7 +1,4 @@
-version: '2.1'
-
-orbs:
-  mailer-orb: sudiptog81/mailer-orb@1.0.0
+version: 2.1
 
 executors:
   docker-executor:
@@ -38,6 +35,9 @@ jobs:
           docker_layer_caching: true
       - checkout
       - run:
+          name: Install Mail Utilities
+          command: sudo apt-get update && sudo apt-get install -y mailutils
+      - run:
           name: Run Tests in Docker Container
           command: |
             echo "Running tests inside Docker container..."
@@ -65,57 +65,20 @@ jobs:
 
               # Check if passing rate is below 70%
               if [ "$passingRate" -lt 70 ]; then
-                echo "Passing rate is below 70%. Triggering failure email..."
-                # Use the mailer-orb job to send the email
-                mailer-orb/send-email:
-                  body: |-
-                    Test results:
-                    Passed: ${passed}
-                    Failed: ${failures}
-                    Errors: ${errors}
-                    Skipped: ${skipped}
-                    Total: ${total}
-                    Passing Rate: ${passingRate}%
-                    
-                    Regards,
-                    CircleCI
-                  from: jubearjabberjetu@gmail.com
-                  subject: Build Failed: Passing Rate Below 70%
-                  to: jubearjabberjetu@gmail.com
+                echo "Passing rate is below 70%. Sending failure emails..."
+                email_content="Test results: Passed: ${passed}, Failed: ${failures}, Errors: ${errors}, Skipped: ${skipped}, Total: ${total}, Passing Rate: ${passingRate}%"
+                
+                for email in jubearjabberjetu@gmail.com jubear.qups@gmail.com; do
+                  echo "$email_content" | mail -s "Build Failed: Passing Rate Below 70%" "$email" -- -S smtp=smtp://localhost:1025
+                  if [ $? -eq 0 ]; then
+                    echo "Mail sent successfully to $email."
+                  else
+                    echo "Failed to send mail to $email."
+                  fi
+                done
               fi
 
               # Save the summary to a file
               echo "Total: ${total}" > passing_rate.txt
               echo "Passed: ${passed}" >> passing_rate.txt
-              echo "Failed: ${failures}" >> passing_rate.txt
-              echo "Errors: ${errors}" >> passing_rate.txt
-              echo "Skipped: ${skipped}" >> passing_rate.txt
-              echo "Passing Rate: ${passingRate}%" >> passing_rate.txt
-
-              # Set the build result based on the pass and fail counts
-              if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
-                echo "UNSTABLE" > result_status.txt
-              else
-                echo "SUCCESS" > result_status.txt
-              fi
-            else
-              echo "No test result summary found in the output."
-            fi
-      - store_artifacts:
-          path: test-results  # Save test results as artifacts
-      - store_artifacts:
-          path: passing_rate.txt  # Save passing rate as an artifact
-      - store_artifacts:
-          path: result_status.txt  # Save build result status as an artifact
-
-workflows:
-  version: 2
-  build_and_test:
-    jobs:
-      - checkout
-      - build_docker_image:
-          requires:
-            - checkout
-      - run_tests_in_docker:
-          requires:
-            - build_docker_image
+              echo "Failed: ${failures}" >>
